@@ -1,0 +1,58 @@
+#include "mbed.h"
+
+Serial pc(USBTX, USBRX); // tx, rx
+PwmOut esc(PTC11);
+DigitalIn sw2(SW3);
+DigitalIn sw3(SW2);
+float esc_inc;
+
+int main() 
+{
+    pc.baud(115200);
+    pc.printf("Turbine Control Interface\n\n\rPress B1 to Increase Thrust by 14.3 percent\n\rPress B2 to Decrease Thrust by 14.3 percent\n\n\r");
+    
+    //  Electronic Speed Control INIT---------------------------------------------
+    float esc_inc = 1200;
+    wait(2);
+    pc.printf("PW set to %4.2f \n\r", esc_inc);
+    wait(2);
+    esc.period_ms(20);
+    pc.printf("Period set to 20ms \n\r");
+    wait(2);
+    esc.pulsewidth_us(1100);
+    pc.printf("PW set to %4.2f Arming the Speed Controller in 2.5 seconds \n\r", esc_inc);
+    wait(5);
+    esc.pulsewidth_us(1200);
+    wait(2);
+    pc.printf("Speed Controller Armed and PW set to %4.2f \n\r", esc_inc);
+        
+    //Main Loop-------------------------------------------------------------------
+    
+    while(true)
+    {
+        //If Button 1 is pressed once
+        if (sw2 == 1)
+        {
+            wait(0.05);
+            if (sw2 ==0)
+            {
+                esc_inc +=100;
+                if (esc_inc > 1900) esc_inc =1200;
+                esc.pulsewidth_us(esc_inc);
+                pc.printf("Pulsewidth Equals %4.2f \n\r", esc_inc);
+            }
+        }
+        //If Button 2 is pressed once    
+        if (sw3 == 1)
+        {
+            wait(0.05);
+            if (sw3 ==0)
+            {                                
+                esc_inc -=100;
+                if (esc_inc < 1200) esc_inc =1200;
+                esc.pulsewidth_us(esc_inc);
+                pc.printf("Pulsewidth Equals %4.2f \n\r", esc_inc);
+            }        
+        }
+    }
+}
